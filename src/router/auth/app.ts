@@ -1,6 +1,6 @@
 // src/auth/app.ts
 import express, { Router, Request, Response } from "express";
-import userFunctions from "../models/users/model";
+import userFunctions from "../../models/users/model";
 
 const router = (mysql: any): Router => {
     const router = express.Router();

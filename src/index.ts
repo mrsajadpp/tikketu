@@ -15,9 +15,9 @@ const mysql = require('./my_sql');
 const app: Express = express();
 const PORT = process.env.PORT || 3002;
 
-import userRouter from './user/app';
-import authRouter from './auth/app';
-import imgRouter from './img/app';
+import userRouter from './router/user/app';
+import authRouter from './router/auth/app';
+import imgRouter from './router/img/app';
 
 const accessLogStream = fs.createWriteStream(
     path.join(__dirname, "../access.log"),
