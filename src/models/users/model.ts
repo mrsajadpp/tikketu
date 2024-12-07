@@ -122,6 +122,25 @@ let userFunctions = {
             });
         });
     },
+    find_by_email: (mysql: any, email: string): Promise<any> => {
+        const findByEmailQuery = `
+        SELECT * FROM users 
+        WHERE email = ?;`;
+
+        return new Promise((resolve, reject) => {
+            mysql.query(findByEmailQuery, [email], (err: Error, results: any) => {
+                if (err) {
+                    console.error('Error finding user by email:', err);
+                    return reject(err);
+                }
+                if (results.length === 0) {
+                    console.log('User not found with email:', email);
+                    return resolve(null);
+                }
+                resolve(results[0]);
+            });
+        });
+    }
 }
 
 export default userFunctions;

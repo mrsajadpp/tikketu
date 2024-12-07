@@ -15,9 +15,9 @@ const mysql = require('./my_sql');
 const app: Express = express();
 const PORT = process.env.PORT || 3002;
 
-import userRouter from './router/user/app';
-import authRouter from './router/auth/app';
-import imgRouter from './router/img/app';
+import userRouter from './router/user/route';
+import authRouter from './router/auth/route';
+import imgRouter from './router/img/route';
 
 const accessLogStream = fs.createWriteStream(
     path.join(__dirname, "../access.log"),
@@ -55,9 +55,9 @@ app.use(morgan("combined", { stream: accessLogStream }));
 
 app.use(express.json());
 
-app.use('/user/', userRouter(mysql));
-app.use('/auth/', authRouter(mysql));
-app.use('/img/', imgRouter(mysql));
+app.use('/api/user/', userRouter(mysql));
+app.use('/api/auth/', authRouter(mysql));
+app.use('/api/img/', imgRouter(mysql));
 
 app.listen(PORT, () => {
     mysql.connect((err: Error) => {
