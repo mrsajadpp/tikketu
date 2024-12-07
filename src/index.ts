@@ -59,6 +59,10 @@ app.use('/user/', userRouter(mysql));
 app.use('/auth/', authRouter(mysql));
 app.use('/img/', imgRouter(mysql));
 
+app.use("*", (req: Request, res: Response) => {
+    res.status(404).json({ error: "API endpoint not found" });
+});
+
 app.listen(PORT, () => {
     mysql.connect((err: Error) => {
         if (err) {
