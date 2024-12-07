@@ -1,9 +1,11 @@
 // src/index.ts
 import express, { Express, Request, Response } from "express";
-import dotenv from "dotenv";
+import * as dotenv from 'dotenv'
+import path from 'path';
+
+dotenv.config();
 
 const fs = require("fs");
-const path = require("path");
 const morgan = require("morgan");
 const colors = require('colors');
 const cors = require('cors');
@@ -12,8 +14,6 @@ const mysql = require('./my_sql');
 
 const app: Express = express();
 const PORT = process.env.PORT || 3002;
-
-dotenv.config();
 
 import userRouter from './user/app';
 import authRouter from './auth/app';
@@ -25,7 +25,7 @@ const accessLogStream = fs.createWriteStream(
 );
 
 
-// Define a custom token for coloring status code
+
 morgan.token('status', (req: Request, res: Response) => {
     const status = res.statusCode;
     let color = status >= 500 ? 'red'
@@ -39,7 +39,7 @@ morgan.token('status', (req: Request, res: Response) => {
 
 app.use(cors());
 
-// Define the custom morgan format
+
 app.use(
     morgan((tokens: any, req: Request, res: Response) => {
         return [
