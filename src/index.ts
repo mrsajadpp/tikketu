@@ -55,9 +55,9 @@ app.use(morgan("combined", { stream: accessLogStream }));
 
 app.use(express.json());
 
-app.use('/api/user/', userRouter(mysql));
-app.use('/api/auth/', authRouter(mysql));
-app.use('/api/img/', imgRouter(mysql));
+app.use('/user/', userRouter(mysql));
+app.use('/auth/', authRouter(mysql));
+app.use('/img/', imgRouter(mysql));
 
 app.listen(PORT, () => {
     mysql.connect((err: Error) => {
