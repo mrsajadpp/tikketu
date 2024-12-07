@@ -7,12 +7,17 @@ const path = require("path");
 const morgan = require("morgan");
 const colors = require('colors');
 const cors = require('cors');
+const mysql = require('./my_sql');
 
 
 const app: Express = express();
 const PORT = process.env.PORT || 3002;
 
 dotenv.config();
+
+import userRouter from './user/app';
+import authRouter from './auth/app';
+import imgRouter from './img/app';
 
 const accessLogStream = fs.createWriteStream(
     path.join(__dirname, "../access.log"),
@@ -50,10 +55,17 @@ app.use(morgan("combined", { stream: accessLogStream }));
 
 app.use(express.json());
 
-app.use('/user/', require('./user/app'));
-app.use('/auth/', require('./auth/app'));
-app.use('/img/', require('./img/app'));
+app.use('/user/', userRouter(mysql));
+app.use('/auth/', authRouter(mysql));
+app.use('/img/', imgRouter(mysql));
 
 app.listen(PORT, () => {
+    mysql.connect((err: Error) => {
+        if (err) {
+            console.error('Error connecting to MySQL:', err);
+            return;
+        }
+        console.log('Connected to MySQL database.');
+    });
     console.log(`🚀 Listening at http://127.0.0.1:${PORT}/`);
 });
