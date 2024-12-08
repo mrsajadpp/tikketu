@@ -1,3 +1,5 @@
+import bcrypt from 'bcrypt';
+
 let userFunctions = {
     create_table: (mysql: any): Promise<any> => {
         return new Promise((resolve, reject) => {
@@ -23,19 +25,56 @@ let userFunctions = {
 
     insert_user: (
         mysql: any,
-        user: { name: string; email: string; password: string }
+        name: string,
+        email: string,
+        password: string
     ): Promise<any> => {
         return new Promise((resolve, reject) => {
-            const insertQuery = `
-            INSERT INTO users (name, email, password) 
-            VALUES (?, ?, ?);`;
-
-            mysql.query(insertQuery, [user.name, user.email, user.password], (err: Error, results: any) => {
+            bcrypt.hash(password, 10, (err, hashedPassword) => {
                 if (err) {
-                    console.error('Error inserting user:', err);
+                    console.error('Error hashing password:', err);
                     return reject(err);
                 }
-                resolve(results);
+
+                const checkUserQuery = `SELECT * FROM users WHERE email = ?`;
+                mysql.query(checkUserQuery, [email], (err: Error, results: any) => {
+                    if (err) {
+                        console.error('Error checking user existence:', err);
+                        return reject(err);
+                    }
+
+                    if (results.length > 0) {
+                        const existingUser = results[0];
+                        if (existingUser.verified) {
+                            return reject(new Error('User already registered with this email'));
+                        } else {
+                            const updateUserQuery = `
+                            UPDATE users 
+                            SET name = ?, password = ?, verified = false, created_at = NOW() 
+                            WHERE email = ?`;
+
+                            mysql.query(updateUserQuery, [name, hashedPassword, email], (updateErr: Error) => {
+                                if (updateErr) {
+                                    console.error('Error updating user:', updateErr);
+                                    return reject(updateErr);
+                                }
+                                resolve({ message: 'User data updated for unverified account' });
+                            });
+                        }
+                    } else {
+                        const insertUserQuery = `
+                        INSERT INTO users (name, email, password, verified) 
+                        VALUES (?, ?, ?, false)`;
+
+                        mysql.query(insertUserQuery, [name, email, hashedPassword], (insertErr: Error, results: any) => {
+                            if (insertErr) {
+                                console.error('Error inserting user:', insertErr);
+                                return reject(insertErr);
+                            }
+                            resolve({ message: 'User successfully registered', userId: results.insertId });
+                        });
+                    }
+                });
             });
         });
     },

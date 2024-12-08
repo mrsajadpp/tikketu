@@ -1,44 +1,44 @@
 // src/auth/app.ts
-import express, { Router, Request, Response } from "express";
+import express, { Router, Request, Response, NextFunction } from "express";
 import userFunctions from "../../models/users/model";
+import secretFunctions from "../../models/secretlinks/model";
+import mailTemplates from "../../email/mail_templates";
 
 const router = (mysql: any): Router => {
     const router = express.Router();
     userFunctions.create_table(mysql);
+    secretFunctions.create_table(mysql);
 
     // Signup Endpoint
-    router.post('/signup', async (req: Request, res: Response) => {
+    router.post('/signup', async (req: Request, res: Response): Promise<any> => {
         const { name, email, password } = req.body;
 
         try {
             if (!name) {
-                res.status(400).json({ error: "Full name is required" });
-                return;
+                return res.status(400).json({ error: "Full name is required" });
             }
             if (!email) {
-                res.status(400).json({ error: "Email is required" });
-                return;
+                return res.status(400).json({ error: "Email is required" });
             }
             if (!password) {
-                res.status(400).json({ error: "Password is required" });
-                return;
+                return res.status(400).json({ error: "Password is required" });
             }
 
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
-                res.status(400).json({ error: "Invalid email structure" });
-                return;
+                return res.status(400).json({ error: "Invalid email structure" });
             }
 
-            const user = await userFunctions.insert_user(mysql, { name, email, password });
-            res.status(201).json({ message: "User created successfully", user });
-            return;
+            const user = await userFunctions.insert_user(mysql, name, email, password);
+            const verification_url = await secretFunctions.generate_verification_link(mysql, email, "http://localhost:3001");
+
+            mailTemplates.signup_verification(email, verification_url);
+            return res.status(201).json({ message: "User created successfully", user });
         } catch (error) {
             console.error(error);
-            res.status(500).json({ error: "Error creating user" });
-            return;
+            return res.status(500).json({ error: "Error creating user" });
         }
-    })
+    });
 
     // Login Endpoint
     router.post('/login', async (req: Request, res: Response) => {
