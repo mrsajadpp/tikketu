@@ -40,7 +40,6 @@ let secretFunctions = {
                 }
 
                 const verificationLink = `${baseURL}/verify?token=${token}`;
-                resolve(verificationLink);
 
                 setTimeout(() => {
                     const deleteTokenQuery = `
@@ -55,6 +54,8 @@ let secretFunctions = {
                         }
                     });
                 }, 6 * 60 * 1000);
+
+                resolve(verificationLink);
             });
         });
     },
