@@ -179,6 +179,42 @@ let userFunctions = {
                 resolve(results[0]);
             });
         });
+    },
+
+    find_user_by_email_and_password: (mysql: any, email: string, password: string): Promise<any> => {
+        const findUserQuery = `
+        SELECT * FROM users 
+        WHERE email = ?;`;
+
+        return new Promise((resolve, reject) => {
+            mysql.query(findUserQuery, [email], (err: Error, results: any) => {
+                if (err) {
+                    console.error('Error finding user by email:', err);
+                    return reject(err);
+                }
+
+                if (results.length === 0) {
+                    console.log('No user found with the provided email');
+                    return reject(new Error('Invalid email or password'));
+                }
+
+                const user = results[0];
+
+                bcrypt.compare(password, user.password, (compareErr, isMatch) => {
+                    if (compareErr) {
+                        console.error('Error comparing passwords:', compareErr);
+                        return reject(compareErr);
+                    }
+
+                    if (!isMatch) {
+                        console.log('Invalid password');
+                        return reject(new Error('Invalid email or password'));
+                    }
+
+                    resolve(user);
+                });
+            });
+        });
     }
 }
 
