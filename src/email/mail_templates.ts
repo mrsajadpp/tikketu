@@ -4,7 +4,7 @@ const mailTemplates = {
     // Signup verification template for Tikketu
     signup_verification: async (to: string, verificationUrl: string, name: string) => {
         const mailOptions = {
-            from: "noreply.grovix@gmail.com",
+            from: 'Tikketu <noreply.tikketu@gmail.com>',
             to: to,
             subject: "Verify Your Tikketu Account",
             text: `Hello ${name},\n\nWelcome to Tikketu! To complete your registration, please verify your email address by clicking the link below:\n\n${verificationUrl}\n\nThis step helps us ensure the security of your account.\n\nThank you for joining Tikketu!`,
@@ -34,7 +34,7 @@ const mailTemplates = {
     // Account successfully verified template for Tikketu
     account_verified: async (to: string, name: string) => {
         const mailOptions = {
-            from: "noreply.grovix@gmail.com",
+            from: 'Tikketu <noreply.tikketu@gmail.com>',
             to: to,
             subject: "Your Tikketu Account Has Been Verified!",
             text: `Hi ${name},\n\nCongratulations! Your Tikketu account has been successfully verified. You can now log in and explore all the features we offer to make your events more enjoyable.\n\nThank you for choosing Tikketu!`,
@@ -61,7 +61,7 @@ const mailTemplates = {
     // New login notification template for Tikketu
     new_login_notification: async (to: string, name: string, loginTime: string) => {
         const mailOptions = {
-            from: "noreply@tikketu.com",
+            from: 'Tikketu <noreply.tikketu@gmail.com>',
             to: to,
             subject: "New Login Detected on Your Tikketu Account",
             text: `Hi ${name},\n\nWe detected a new login to your Tikketu account at ${loginTime}.\n\nIf this was not you, please reset your password immediately.\n\nThank you for being with Tikketu.`,

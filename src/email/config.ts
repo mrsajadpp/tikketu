@@ -7,7 +7,7 @@ const send_mail = async (mailOptions: { from: String, to: String, subject: Strin
         port: 587,
         secure: false,
         auth: {
-            user: 'noreply.grovix@gmail.com',
+            user: 'noreply.tikketu@gmail.com',
             pass: process.env.MAIL_PASS
         }
     });
