@@ -113,22 +113,36 @@ let secretFunctions = {
 
                     console.log('Token deleted successfully');
 
-                    const fetchUserQuery = `
-                    SELECT * 
-                    FROM users 
+                    const updateUserQuery = `
+                    UPDATE users 
+                    SET verified = true 
                     WHERE email = ?;`;
 
-                    mysql.query(fetchUserQuery, [email], (userErr: Error, userResults: any[]) => {
-                        if (userErr) {
-                            console.error('Error fetching user data:', userErr);
-                            return reject(userErr);
+                    mysql.query(updateUserQuery, [email], (updateErr: Error) => {
+                        if (updateErr) {
+                            console.error('Error updating user data:', updateErr);
+                            return reject(updateErr);
                         }
 
-                        if (userResults.length === 0) {
-                            return reject(new Error('User not found'));
-                        }
+                        console.log('User verified successfully');
 
-                        resolve(userResults[0]);
+                        const fetchUserQuery = `
+                        SELECT * 
+                        FROM users 
+                        WHERE email = ?;`;
+
+                        mysql.query(fetchUserQuery, [email], (userErr: Error, userResults: any[]) => {
+                            if (userErr) {
+                                console.error('Error fetching user data:', userErr);
+                                return reject(userErr);
+                            }
+
+                            if (userResults.length === 0) {
+                                return reject(new Error('User not found'));
+                            }
+
+                            resolve(userResults[0]);
+                        });
                     });
                 });
             });
