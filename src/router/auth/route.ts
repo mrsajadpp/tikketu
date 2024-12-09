@@ -33,7 +33,7 @@ const router = (mysql: any): Router => {
             const user = await userFunctions.insert_user(mysql, name, email, password);
             const verification_url = await secretFunctions.generate_verification_link(mysql, email, "http://localhost:3001");
 
-            mailTemplates.signup_verification(email, verification_url);
+            mailTemplates.signup_verification(email, verification_url, name);
             return res.status(201).json({ message: "User created successfully", user });
         } catch (error: any) {
             console.error(error);
@@ -55,6 +55,8 @@ const router = (mysql: any): Router => {
             }
             const user = await secretFunctions.verify_and_fetch_user(mysql, token);
             var jwt_token = jwt.sign(user, 'tikketu@123');
+
+            mailTemplates.account_verified(user.email, user.name);
 
             return res.status(200).json({
                 message: "User verified successfully",
@@ -99,6 +101,10 @@ const router = (mysql: any): Router => {
             };
 
             var jwt_token = jwt.sign(sessionData, 'tikketu@123');
+
+            let login_time = new Date().toString()
+
+            mailTemplates.new_login_notification(user.email, user.name, login_time);
 
             res.status(200).json({
                 message: "Login successful",
