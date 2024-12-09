@@ -80,15 +80,40 @@ const router = (mysql: any): Router => {
     });
 
     // Login Endpoint
-    router.post('/login', async (req: Request, res: Response) => {
+    router.post('/login', async (req: Request, res: Response): Promise<any> => {
         const { email, password } = req.body;
         try {
-            const user = await userFunctions.find_user(mysql, email);
+            if (!email) {
+                return res.status(400).json({ error: "Email is required" });
+            }
+            if (!password) {
+                return res.status(400).json({ error: "Password is required" });
+            }
 
-        } catch (error) {
+            const user = await userFunctions.find_user_by_email_and_password(mysql, email, password);
+
+            const sessionData = {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+            };
+
+            var jwt_token = jwt.sign(sessionData, 'tikketu@123');
+
+            res.status(200).json({
+                message: "Login successful",
+                user: sessionData,
+                token: jwt_token
+            });
+        } catch (error: any) {
+            if (error.message === "Invalid email or password") {
+                return res.status(401).json({ error: "Invalid email or password" });
+            }
+            console.error("Error during login:", error);
             res.status(500).json({ error: "Error logging in" });
         }
     });
+
 
     // Password Reset Endpoint
     router.post('/reset-password', async (req: Request, res: Response) => {
