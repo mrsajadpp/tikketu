@@ -1,5 +1,6 @@
 // src/auth/app.ts
 import express, { Router, Request, Response, NextFunction } from "express";
+var jwt = require('jsonwebtoken');
 import userFunctions from "../../models/users/model";
 import secretFunctions from "../../models/secretlinks/model";
 import mailTemplates from "../../email/mail_templates";
@@ -37,6 +38,39 @@ const router = (mysql: any): Router => {
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: "Error creating user" });
+        }
+    });
+
+    // Verification Endpoint
+    router.post('/verify-user', async (req: Request, res: Response): Promise<any> => {
+        const { token } = req.body;
+        try {
+            if (!token) {
+                return res.status(400).json({ error: "Token is required" });
+            }
+            const user = await secretFunctions.verify_and_fetch_user(mysql, token);
+            var jwt_token = jwt.sign(user, 'tikketu@123', { algorithm: 'RS256' });
+
+            return res.status(200).json({
+                message: "User verified successfully",
+                token: jwt_token,
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name
+                }
+            });
+        } catch (error: any) {
+            console.error(error);
+
+            if (error.message === 'Token not found or expired') {
+                return res.status(404).json({ error: "Invalid or expired token" });
+            }
+            if (error.message === 'User not found') {
+                return res.status(404).json({ error: "User not found" });
+            }
+
+            return res.status(500).json({ error: "Error logging in" });
         }
     });
 

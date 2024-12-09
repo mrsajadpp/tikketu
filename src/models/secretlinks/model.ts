@@ -77,6 +77,62 @@ let secretFunctions = {
                 resolve();
             });
         });
+    },
+
+    verify_and_fetch_user: (
+        mysql: any,
+        token: string
+    ): Promise<any> => {
+        return new Promise((resolve, reject) => {
+            const fetchTokenQuery = `
+            SELECT email 
+            FROM verification_tokens 
+            WHERE token = ?;`;
+
+            mysql.query(fetchTokenQuery, [token], (err: Error, results: any[]) => {
+                if (err) {
+                    console.error('Error fetching token data:', err);
+                    return reject(err);
+                }
+
+                if (results.length === 0) {
+                    return reject(new Error('Token not found or expired'));
+                }
+
+                const email = results[0].email;
+
+                const deleteTokenQuery = `
+                DELETE FROM verification_tokens 
+                WHERE token = ?;`;
+
+                mysql.query(deleteTokenQuery, [token], (deleteErr: Error) => {
+                    if (deleteErr) {
+                        console.error('Error deleting token:', deleteErr);
+                        return reject(deleteErr);
+                    }
+
+                    console.log('Token deleted successfully');
+
+                    const fetchUserQuery = `
+                    SELECT * 
+                    FROM users 
+                    WHERE email = ?;`;
+
+                    mysql.query(fetchUserQuery, [email], (userErr: Error, userResults: any[]) => {
+                        if (userErr) {
+                            console.error('Error fetching user data:', userErr);
+                            return reject(userErr);
+                        }
+
+                        if (userResults.length === 0) {
+                            return reject(new Error('User not found'));
+                        }
+
+                        resolve(userResults[0]);
+                    });
+                });
+            });
+        });
     }
 };
 
