@@ -1,5 +1,9 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const bcrypt_1 = __importDefault(require("bcrypt"));
 let userFunctions = {
     create_table: (mysql) => {
         return new Promise((resolve, reject) => {
@@ -21,17 +25,51 @@ let userFunctions = {
             });
         });
     },
-    insert_user: (mysql, user) => {
+    insert_user: (mysql, name, email, password) => {
         return new Promise((resolve, reject) => {
-            const insertQuery = `
-            INSERT INTO users (name, email, password) 
-            VALUES (?, ?, ?);`;
-            mysql.query(insertQuery, [user.name, user.email, user.password], (err, results) => {
+            bcrypt_1.default.hash(password, 10, (err, hashedPassword) => {
                 if (err) {
-                    console.error('Error inserting user:', err);
+                    console.error('Error hashing password:', err);
                     return reject(err);
                 }
-                resolve(results);
+                const checkUserQuery = `SELECT * FROM users WHERE email = ?`;
+                mysql.query(checkUserQuery, [email], (err, results) => {
+                    if (err) {
+                        console.error('Error checking user existence:', err);
+                        return reject(err);
+                    }
+                    if (results.length > 0) {
+                        const existingUser = results[0];
+                        if (existingUser.verified) {
+                            return reject(new Error('User already registered with this email'));
+                        }
+                        else {
+                            const updateUserQuery = `
+                            UPDATE users 
+                            SET name = ?, password = ?, verified = false, created_at = NOW() 
+                            WHERE email = ?`;
+                            mysql.query(updateUserQuery, [name, hashedPassword, email], (updateErr) => {
+                                if (updateErr) {
+                                    console.error('Error updating user:', updateErr);
+                                    return reject(updateErr);
+                                }
+                                resolve({ message: 'User data updated for unverified account' });
+                            });
+                        }
+                    }
+                    else {
+                        const insertUserQuery = `
+                        INSERT INTO users (name, email, password, verified) 
+                        VALUES (?, ?, ?, false)`;
+                        mysql.query(insertUserQuery, [name, email, hashedPassword], (insertErr, results) => {
+                            if (insertErr) {
+                                console.error('Error inserting user:', insertErr);
+                                return reject(insertErr);
+                            }
+                            resolve({ message: 'User successfully registered', userId: results.insertId });
+                        });
+                    }
+                });
             });
         });
     },
@@ -119,6 +157,35 @@ let userFunctions = {
                     return resolve(null);
                 }
                 resolve(results[0]);
+            });
+        });
+    },
+    find_user_by_email_and_password: (mysql, email, password) => {
+        const findUserQuery = `
+        SELECT * FROM users 
+        WHERE email = ?;`;
+        return new Promise((resolve, reject) => {
+            mysql.query(findUserQuery, [email], (err, results) => {
+                if (err) {
+                    console.error('Error finding user by email:', err);
+                    return reject(err);
+                }
+                if (results.length === 0) {
+                    console.log('No user found with the provided email');
+                    return reject(new Error('Invalid email or password'));
+                }
+                const user = results[0];
+                bcrypt_1.default.compare(password, user.password, (compareErr, isMatch) => {
+                    if (compareErr) {
+                        console.error('Error comparing passwords:', compareErr);
+                        return reject(compareErr);
+                    }
+                    if (!isMatch) {
+                        console.log('Invalid password');
+                        return reject(new Error('Invalid email or password'));
+                    }
+                    resolve(user);
+                });
             });
         });
     }
