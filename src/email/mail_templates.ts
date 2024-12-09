@@ -86,6 +86,61 @@ const mailTemplates = {
         } catch (err) {
             console.error("Error sending new login notification email:", err);
         }
+    },
+
+    // Password reset template for Tikketu
+    password_reset: async (to: string, resetUrl: string, name: string) => {
+        const mailOptions = {
+            from: 'Tikketu <noreply.tikketu@gmail.com>',
+            to: to,
+            subject: "Reset Your Tikketu Password",
+            text: `Hi ${name},\n\nWe received a request to reset your Tikketu account password. You can reset it by clicking the link below:\n\n${resetUrl}\n\nIf you did not request a password reset, please ignore this email or contact our support team.\n\nThe link will expire in 6 minutes.\n\nBest Regards,\nThe Tikketu Team`,
+            html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
+                <h2>Hello, ${name},</h2>
+                <p>We received a request to reset your <strong>Tikketu</strong> account password. Click the button below to reset it:</p>
+                <a href="${resetUrl}" style="background-color: #0078e8; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px; display: inline-block; font-weight: bold;">Reset Password</a>
+                <p>If the button above doesn’t work, copy and paste the following URL into your browser:</p>
+                <p><a href="${resetUrl}">${resetUrl}</a></p>
+                <p><strong>Note:</strong> This link will expire in 6 minutes. If you did not request a password reset, please ignore this email or contact our support team for assistance.</p>
+                <p>Best Regards,</p>
+                <p><strong>The Tikketu Team</strong></p>
+            </div>
+        `,
+        };
+
+        try {
+            await send_mail(mailOptions);
+            console.log("Password reset email sent successfully to:", to);
+        } catch (err) {
+            console.error("Error sending password reset email:", err);
+        }
+    },
+
+    password_reset_notification: async (to: string, name: string) => {
+        const mailOptions = {
+            from: 'Tikketu <noreply.tikketu@gmail.com>',
+            to: to,
+            subject: "Your Tikketu Password Has Been Reset",
+            text: `Hi,\n\nYour Tikketu account password has been successfully reset. If you did not request this reset, please contact our support team immediately.\n\nBest Regards,\nThe Tikketu Team`,
+            html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
+                    <h2>Hello,</h2>
+                    <p>Your <strong>Tikketu</strong> account password has been successfully reset.</p>
+                    <p>If you did not request this reset, please contact our support team immediately to secure your account.</p>
+                    <p>Thank you for being with us!</p>
+                    <p>Best Regards,</p>
+                    <p><strong>The Tikketu Team</strong></p>
+                </div>
+            `,
+        };
+
+        try {
+            await send_mail(mailOptions);
+            console.log("Password reset email sent successfully to:", to);
+        } catch (err) {
+            console.error("Error sending password reset email:", err);
+        }
     }
 };
 

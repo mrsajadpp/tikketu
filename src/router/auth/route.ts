@@ -105,7 +105,7 @@ const router = (mysql: any): Router => {
 
             mailTemplates.new_login_notification(user.email, user.name, login_time);
 
-            res.status(200).json({
+            return res.status(200).json({
                 message: "Login successful",
                 user: sessionData,
                 token: jwt_token
@@ -115,38 +115,69 @@ const router = (mysql: any): Router => {
                 return res.status(401).json({ error: "Invalid email or password" });
             }
             console.error("Error during login:", error);
-            res.status(500).json({ error: "Error logging in" });
+            return res.status(500).json({ error: "Error logging in" });
         }
     });
 
 
     // Password Reset Endpoint
-    router.post('/reset-password', async (req: Request, res: Response) => {
+    router.post('/reset-password', async (req: Request, res: Response): Promise<any> => {
         const { email } = req.body;
         try {
+            if (!email) {
+                return res.status(400).json({ error: "Email is required" });
+            }
 
-        } catch (error) {
-            res.status(500).json({ error: "Error initiating password reset" });
+            let user = await userFunctions.find_by_email(mysql, email);
+
+            let reset_link = await secretFunctions.generate_password_reset_link(mysql, email, "http://localhost:3001");
+
+            mailTemplates.password_reset(email, reset_link, user.name);
+
+            return res.status(200).json({ message: "Password reset email has been sent" });
+        } catch (error: any) {
+            if (error.message === "Error saving verification token") {
+                return res.status(401).json({ error: "Error saving verification token" });
+            }
+            return res.status(500).json({ error: "Error initiating password reset" });
         }
     });
 
     // Password Reset Verification Endpoint
-    router.get('/reset-password/:token', async (req: Request, res: Response) => {
+    router.post('/reset-password/:token', async (req: Request, res: Response): Promise<any> => {
         const { token } = req.params;
+        const { password } = req.body;
         try {
+            if (!token) {
+                return res.status(400).json({ error: "Token is required" });
+            }
 
-        } catch (error) {
-            res.status(500).json({ error: "Error verifying reset token" });
-        }
-    });
+            if (!password) {
+                return res.status(400).json({ error: "New password is required" });
+            }
 
-    // Email URL Verification Endpoint
-    router.get('/verify-email/:token', async (req: Request, res: Response) => {
-        const { token } = req.params;
-        try {
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*]{8,}$/;
+            if (!passwordRegex.test(password)) {
+                return res.status(400).json({ error: "Password must be at least 8 characters long, include letters, numbers, and special symbols." });
+            }
 
-        } catch (error) {
-            res.status(500).json({ error: "Error verifying email" });
+            let user = await secretFunctions.find_user_by_token(mysql, token);
+
+            secretFunctions.validate_and_update_password(mysql, token, password);
+
+            mailTemplates.password_reset_notification(user.email, user.name);
+            return res.status(200).json({ message: "Password has been reset" });
+        } catch (error: any) {
+            if (error.message === "Error updating password") {
+                return res.status(401).json({ error: "Error updating password" });
+            }
+            if (error.message === "Error deleting token") {
+                return res.status(401).json({ error: "Error deleting token" });
+            }
+            if (error.message === "Error hashing password") {
+                return res.status(401).json({ error: "Error hashing password" });
+            }
+            return res.status(500).json({ error: "Error verifying reset token" });
         }
     });
 
