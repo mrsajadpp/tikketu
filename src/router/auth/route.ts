@@ -48,7 +48,6 @@ const router = (mysql: any): Router => {
     router.post('/verify-user', async (req: Request, res: Response): Promise<any> => {
         const { token } = req.body;
         try {
-            console.log(req.body);
 
             if (!token) {
                 return res.status(400).json({ error: "Token is required" });
