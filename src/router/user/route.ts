@@ -1,4 +1,4 @@
-// src/user/app.ts
+// src/user/route.ts
 import express, { Router, Request, Response } from "express";
 const router = (mysql: any): Router => {
     const router = express.Router();

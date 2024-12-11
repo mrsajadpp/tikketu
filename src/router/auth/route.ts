@@ -1,4 +1,4 @@
-// src/auth/app.ts
+// src/auth/route.ts
 import express, { Router, Request, Response, NextFunction } from "express";
 var jwt = require('jsonwebtoken');
 import userFunctions from "../../models/users/model";

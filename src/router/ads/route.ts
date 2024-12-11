@@ -1,7 +1,11 @@
-// src/img/route.ts
+// src/ads/route.ts
 import express, { Router, Request, Response } from "express";
+import adsFunctions from "../../models/ads/model";
+
 const router = (mysql: any): Router => {
     const router = express.Router();
+
+    adsFunctions.create_table(mysql);
 
     router.get('/', (req: Request, res: Response) => {
         res.send('Fetching users from DB');

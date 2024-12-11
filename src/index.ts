@@ -18,6 +18,7 @@ const PORT = process.env.PORT || 3002;
 import userRouter from './router/user/route';
 import authRouter from './router/auth/route';
 import imgRouter from './router/img/route';
+import adsRouter from './router/ads/route';
 
 const accessLogStream = fs.createWriteStream(
     path.join(__dirname, "../access.log"),
@@ -57,6 +58,7 @@ app.use(express.json());
 
 app.use('/user/', userRouter(mysql));
 app.use('/auth/', authRouter(mysql));
+app.use('/ads/', adsRouter(mysql));
 app.use('/img/', imgRouter(mysql));
 
 app.use("*", (req: Request, res: Response) => {
